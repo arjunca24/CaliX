@@ -6,6 +6,7 @@ export default function Home() {
       Testing
       Second Test
       Third Test
+      Fourth Test
     {Hom()}
    </view>
   );
