@@ -1,13 +1,10 @@
-import Image from "next/image";
-import Hom from "./home";
+'use client'
+import HomePage from "./home";
 export default function Home() {
   return (
-    <view>
-      Testing
-      Second Test
-      Third Test
-      Fourth Test
-    {Hom()}
-   </view>
+    <div style={{ backgroundColor: "lightgray", position: "absolute", left: "0%", top: "0%", width: "100%", height: "100%" }}>
+      <p>Testing</p>
+      <HomePage/>
+    </div>
   );
 }
