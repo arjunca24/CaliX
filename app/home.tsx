@@ -16,6 +16,45 @@ function elbowAngle(elbow: NormalizedLandmark, shoulder: NormalizedLandmark, wri
     return Math.acos(Math.max(-1, Math.min(1, dot / (mag1 * mag2)))) * (180 / Math.PI); 
 }
     
+function bodyAngle(shoulder: NormalizedLandmark, hip: NormalizedLandmark, ankle: NormalizedLandmark) {
+    if (shoulder.visibility < 0.5 || hip.visibility < 0.5 || ankle.visibility < 0.5) {
+        return 180; // Return 180 if any of the landmarks are not visible enough
+    }
+    const v1 = { x: hip.x - shoulder.x, y: hip.y - shoulder.y };
+    const v2 = { x: ankle.x - hip.x, y: ankle.y - hip.y };      
+
+    const dot = v1.x * v2.x + v1.y * v2.y;
+    const mag1 = Math.sqrt(v1.x ** 2 + v1.y ** 2);
+    const mag2 = Math.sqrt(v2.x ** 2 + v2.y ** 2);
+    if (mag1 === 0 || mag2 === 0) return 180; // Avoid division by zero
+    return Math.acos(Math.max(-1, Math.min(1, dot / (mag1 * mag2)))) * (180 / Math.PI);
+}
+
+function feedbackMessage(worstAngle: number, worstBodyAngle: number): string {
+    let elbowAngleFeedback = "";
+    let bodyAngleFeedback = "";
+
+    if (worstAngle < 90) {
+        elbowAngleFeedback = "Great form!";
+    }
+    else if (worstAngle < 110) {
+        elbowAngleFeedback = "Good form!";
+    }               
+    else  {
+        elbowAngleFeedback = "Try to bend your elbows more next time.";
+    }
+
+    if (worstBodyAngle < 160) {
+        bodyAngleFeedback = "Try to keep your back straighter next time.";
+    }
+    else if (worstBodyAngle < 170) {
+        bodyAngleFeedback = "Good posture!";
+    }   
+    else {
+        bodyAngleFeedback = "Great posture!";
+    }
+    return elbowAngleFeedback+bodyAngleFeedback;
+}
 
 
 function draw(result: NormalizedLandmark[], ctx: CanvasRenderingContext2D | null | undefined, canvas: HTMLCanvasElement | null) {
@@ -49,6 +88,10 @@ export default function HomePage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const poseLandmarker = useRef<PoseLandmarker | null>(null);
     const worstAngle = useRef<number>(180);
+    const phase = useRef<"Up" | "Down">("Up"); 
+    const [repCount, setRepCount] = useState<number>(0);
+    const [feedback, setFeedback] = useState<string>("");
+    const worstBodyAngle = useRef<number>(180);
 
     useEffect(() => {
         async function setupPoseLandmarker() {
@@ -95,11 +138,24 @@ export default function HomePage() {
             );
             
             const ctx = canvasRef.current?.getContext("2d")
-           // console.log(results.landmarks[0]);
             draw(results.landmarks[0], ctx, canvasRef.current);
-            worstAngle.current = Math.min(worstAngle.current, elbowAngle(results.landmarks[0][13], results.landmarks[0][11], results.landmarks[0][15]));
-            worstAngle.current = Math.min(worstAngle.current, elbowAngle(results.landmarks[0][14], results.landmarks[0][12], results.landmarks[0][16]));
 
+            const currentAngle = Math.min(elbowAngle(results.landmarks[0][13], results.landmarks[0][11], results.landmarks[0][15]), elbowAngle(results.landmarks[0][14], results.landmarks[0][12], results.landmarks[0][16]));
+            worstAngle.current = Math.min(worstAngle.current, currentAngle);  
+            
+            const currentBodyAngle = Math.min(bodyAngle(results.landmarks[0][11], results.landmarks[0][23], results.landmarks[0][27]), bodyAngle(results.landmarks[0][12], results.landmarks[0][24], results.landmarks[0][28]));            
+            worstBodyAngle.current = Math.min(worstBodyAngle.current, currentBodyAngle);
+
+            if (currentAngle < 120 && phase.current === "Up") {
+                phase.current = "Down";
+            }
+            else if (currentAngle > 160 && phase.current === "Down") {
+                phase.current = "Up";
+                setRepCount(prevCount => prevCount + 1);
+                setFeedback(feedbackMessage(worstAngle.current, worstBodyAngle.current));
+                worstBodyAngle.current = 180; // Reset worst body angle for the next rep
+                worstAngle.current = 180; // Reset worst angle for the next rep
+            }
             
             lastVideoTime.current = videoRef.current.currentTime;
         }
@@ -115,12 +171,14 @@ export default function HomePage() {
     return (
         <div
             style={{ position: "absolute", left: "30%", top: "10%", width: "40%", height: "40%" }}
-        >
+        >   
             <button onClick={start}>Launch</button>
+            <div>Reps: {repCount}</div>
             <div style = {{position: 'relative'}}>
             <video ref={videoRef} autoPlay playsInline style={{ width: "100%", height: "100%" }} />
             <canvas ref={canvasRef} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }} />
             </div>
+            <div>{feedback}</div>
         </div>
     );
 }
