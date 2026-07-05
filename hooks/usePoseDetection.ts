@@ -61,10 +61,13 @@ export function usePoseDetection() {
                   requestAnimationFrame(renderLoop);
               }
           
+              const started = useRef(false);
               function start() {
+              if (started.current) return;
+              started.current = true;
               loadVideo(videoRef, canvasRef,renderLoop);
 
-                  
+
               }
       return    { canvasRef, videoRef, start,landmarks};  
 }

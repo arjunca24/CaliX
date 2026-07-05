@@ -29,27 +29,29 @@ export function bodyAngle(shoulder: NormalizedLandmark, hip: NormalizedLandmark,
 }
 
 export function feedbackMessage(worstAngle: number, worstBodyAngle: number): string {
-    let elbowAngleFeedback = "";
-    let bodyAngleFeedback = "";
+    // Score each dimension: 2 = great, 1 = good, 0 = needs work
+    const elbowScore = worstAngle < 90 ? 2 : worstAngle < 110 ? 1 : 0;
+    const bodyScore = worstBodyAngle >= 170 ? 2 : worstBodyAngle >= 160 ? 1 : 0;
+    const overall = Math.min(elbowScore, bodyScore);
 
-    if (worstAngle < 90) {
-        elbowAngleFeedback = "Great form!";
-    }
-    else if (worstAngle < 110) {
-        elbowAngleFeedback = "Good form!";
-    }               
-    else  {
-        elbowAngleFeedback = "Try to bend your elbows more next time.";
+    if (overall === 2) {
+        return "Perfect rep — flawless form!";
     }
 
-    if (worstBodyAngle < 160) {
-        bodyAngleFeedback = "Try to keep your back straighter next time.";
+    if (overall === 1) {
+        // Solid rep, nudge the weaker dimension
+        if (elbowScore <= bodyScore) {
+            return "Good rep — try going a little lower";
+        }
+        return "Good rep — keep your hips level";
     }
-    else if (worstBodyAngle < 170) {
-        bodyAngleFeedback = "Good posture!";
-    }   
-    else {
-        bodyAngleFeedback = "Great posture!";
+
+    // Needs improvement — call out the specific fault(s)
+    if (elbowScore === 0 && bodyScore === 0) {
+        return "Go lower and keep your back straight";
     }
-    return elbowAngleFeedback+bodyAngleFeedback;
+    if (elbowScore === 0) {
+        return "Bend your elbows more — go deeper";
+    }
+    return "Keep your back straight — no sagging";
 }
