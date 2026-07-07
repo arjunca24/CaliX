@@ -6,6 +6,10 @@ Users point their webcam at themselves while exercising and get real-time
 pose detection, automatic rep counting, and post-rep form feedback.
 Built to be shareable via a link — no app install required.
 
+## Links
+- Live: https://cali-x-one.vercel.app/
+- GitHub: https://github.com/arjunca24/CaliX
+
 ## Tech stack
 - Next.js 16 (App Router)
 - React 19
@@ -27,7 +31,8 @@ Goal is to understand every line deeply enough to discuss it in an interview.
 ## Project structure
 src/
 ├── app/
-│   ├── page.tsx                 — landing page (placeholder)
+│   ├── page.tsx                 — landing page
+│   ├── layout.tsx               — navbar, global layout
 │   └── pushups/
 │       └── page.tsx             — pushups page, rep counting, form feedback
 ├── hooks/
@@ -37,18 +42,21 @@ src/
 │   └── formUtils.ts             — elbowAngle(), bodyAngle(), feedbackMessage()
 
 ## Current state
+- Deployed and live at https://cali-x-one.vercel.app/
 - Camera feed working via getUserMedia, starts on user click
-- MediaPipe pose landmarker loading and running detectForVideo in a render loop
-- Skeleton overlay drawing on canvas with visibility filtering
+- MediaPipe pose landmarker loading and running detectForVideo in render loop
+- Skeleton overlay on canvas with visibility filtering
 - Elbow angle calculated via dot product method
 - Body alignment (shoulder/hip/ankle) tracked per rep
 - Phase detection state machine (Up/Down) counting reps
-- Post-rep feedback generated from worst elbow angle and worst body angle
-- Full refactor complete — hook/lib/page separation done
-- App works end to end at /pushups
+- Post-rep feedback from worst elbow angle and worst body angle per rep
+- Full refactor complete — hook/lib/page separation
+- Light warm theme (#faf9f6), green accent (#16a34a), glassmorphism overlays
+- Navbar in layout.tsx, landing page at /
 
-## Next task
-UI polish with Tailwind CSS — the app currently looks like a debug page.
-Needs a navbar, styled video container, rep counter overlaid on video,
-colour-coded feedback messages, and a proper start button.
-Then deploy to Vercel for a shareable URL.
+## Next tasks (post-MVP)
+- Improve skeleton overlay — kite shapes between joints for anatomical look
+- Add more exercises (squats, plank)
+- Progression system — unlock harder variations at rep targets
+- Workout history and session logging
+- Mobile PWA support
